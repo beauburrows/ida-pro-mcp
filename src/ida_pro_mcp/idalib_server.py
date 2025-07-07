@@ -105,7 +105,7 @@ def fixup_tool_argument_descriptions(mcp: FastMCP):
 def main():
     parser = argparse.ArgumentParser(description="MCP server for IDA Pro via idalib")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show debug messages")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to listen on, default: 127.0.0.1")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to listen on, default: 0.0.0.0 (all interfaces for VM compatibility)")
     parser.add_argument("--port", type=int, default=8745, help="Port to listen on, default: 8745")
     parser.add_argument("--unsafe", action="store_true", help="Enable unsafe functions (DANGEROUS)")
     parser.add_argument("input_path", type=Path, help="Path to the input file to analyze.")
@@ -153,6 +153,10 @@ def main():
 
     # NOTE: npx @modelcontextprotocol/inspector for debugging
     logger.info("MCP Server availabile at: http://%s:%d/sse", mcp.settings.host, mcp.settings.port)
+    if mcp.settings.host == "0.0.0.0":
+        logger.warning("WARNING: Server is listening on all interfaces (0.0.0.0)")
+        logger.warning("WARNING: This exposes IDA Pro functionality to the network")
+        logger.warning("WARNING: Only use this on trusted networks like host-only VM networks")
     try:
         mcp.run(transport="sse")
     except KeyboardInterrupt:

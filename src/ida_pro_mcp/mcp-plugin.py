@@ -190,8 +190,8 @@ class MCPHTTPServer(http.server.HTTPServer):
     allow_reuse_address = False
 
 class Server:
-    HOST = "localhost"
-    PORT = 13337
+    HOST = os.environ.get("MCP_PLUGIN_HOST", "0.0.0.0")  # Listen on all interfaces to accept connections from host
+    PORT = int(os.environ.get("MCP_PLUGIN_PORT", "13337"))
 
     def __init__(self):
         self.server = None
@@ -225,6 +225,10 @@ class Server:
             # Create server in the thread to handle binding
             self.server = MCPHTTPServer((Server.HOST, Server.PORT), JSONRPCRequestHandler)
             print(f"[MCP] Server started at http://{Server.HOST}:{Server.PORT}")
+            if Server.HOST == "0.0.0.0":
+                print("[MCP] WARNING: Server is listening on all interfaces (0.0.0.0)")
+                print("[MCP] WARNING: This exposes IDA Pro functionality to the network")
+                print("[MCP] WARNING: Only use this on trusted networks like host-only VM networks")
             self.server.serve_forever()
         except OSError as e:
             if e.errno == 98 or e.errno == 10048:  # Port already in use (Linux/Windows)

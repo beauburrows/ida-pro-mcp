@@ -83,6 +83,51 @@ https://github.com/user-attachments/assets/65ed3373-a187-4dd5-a807-425dca1d8ee9
 
 _Note_: You need to load a binary in IDA before the plugin menu will show up.
 
+## VM and Network Configuration
+
+### Running IDA Pro in a VM
+
+For security or isolation purposes, you can run IDA Pro in a virtual machine while keeping the MCP client (Claude Desktop, Cline, etc.) on the host machine. This setup requires network configuration:
+
+#### VM Setup (IDA Pro side)
+1. Configure VM with host-only network adapter
+2. Set environment variables in the VM:
+   ```sh
+   export MCP_PLUGIN_HOST=0.0.0.0  # Listen on all interfaces
+   export MCP_PLUGIN_PORT=13337    # Default port
+   ```
+3. Start IDA Pro and load the MCP plugin
+
+#### Host Setup (MCP Client side)
+1. Configure the MCP server to connect to VM IP:
+   ```sh
+   export IDA_HOST=192.168.112.129  # Replace with your VM IP
+   export IDA_PORT=13337
+   ```
+2. Or use command line arguments:
+   ```sh
+   ida-pro-mcp --ida-host 192.168.112.129 --ida-port 13337
+   ```
+
+#### Security Considerations
+- **WARNING**: When using `0.0.0.0` binding, IDA Pro functionality is exposed to the network
+- Only use this configuration on trusted, isolated networks (like host-only VM networks)
+- Consider firewall rules to restrict access to port 13337
+- The IDALib server also supports `--host 0.0.0.0` for VM deployments
+
+#### Network Configuration Options
+
+**Environment Variables:**
+- `IDA_HOST`: IDA server hostname/IP (default: 192.168.112.129)
+- `IDA_PORT`: IDA server port (default: 13337)
+- `MCP_PLUGIN_HOST`: IDA plugin bind address (default: 0.0.0.0)
+- `MCP_PLUGIN_PORT`: IDA plugin port (default: 13337)
+
+**Command Line Arguments:**
+- `--ida-host`: Override IDA server host
+- `--ida-port`: Override IDA server port
+- `--ida-rpc`: Full IDA RPC URL (takes precedence)
+
 ## Prompt Engineering
 
 LLMs are prone to hallucinations and you need to be specific with your prompting. For reverse engineering the conversion between integers and bytes are especially problematic. Below is a minimal example prompt, feel free to start a discussion or open an issue if you have good results with a different prompt:

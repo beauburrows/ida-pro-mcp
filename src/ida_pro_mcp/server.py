@@ -13,7 +13,7 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("github.com/mrexodia/ida-pro-mcp", log_level="ERROR")
 
 jsonrpc_request_id = 1
-ida_host = "127.0.0.1"
+ida_host = "192.168.112.129"  # VM IP address on host-only network
 ida_port = 13337
 
 def make_jsonrpc_request(method: str, *params):
@@ -400,6 +400,11 @@ def install_ida_plugin(*, uninstall: bool = False, quiet: bool = False):
 
 def main():
     global ida_host, ida_port
+    
+    # Allow configuration via environment variables
+    ida_host = os.environ.get("IDA_HOST", ida_host)
+    ida_port = int(os.environ.get("IDA_PORT", ida_port))
+    
     parser = argparse.ArgumentParser(description="IDA Pro MCP Server")
     parser.add_argument("--install", action="store_true", help="Install the MCP Server and IDA plugin")
     parser.add_argument("--uninstall", action="store_true", help="Uninstall the MCP Server and IDA plugin")
@@ -407,6 +412,8 @@ def main():
     parser.add_argument("--install-plugin", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--transport", type=str, default="stdio", help="MCP transport protocol to use (stdio or http://127.0.0.1:8744)")
     parser.add_argument("--ida-rpc", type=str, default=f"http://{ida_host}:{ida_port}", help=f"IDA RPC server to use (default: http://{ida_host}:{ida_port})")
+    parser.add_argument("--ida-host", type=str, default=ida_host, help=f"IDA server host (default: {ida_host}, can also set IDA_HOST env var)")
+    parser.add_argument("--ida-port", type=int, default=ida_port, help=f"IDA server port (default: {ida_port}, can also set IDA_PORT env var)")
     parser.add_argument("--unsafe", action="store_true", help="Enable unsafe functions (DANGEROUS)")
     parser.add_argument("--config", action="store_true", help="Generate MCP config JSON")
     args = parser.parse_args()
@@ -438,7 +445,13 @@ def main():
         print_mcp_config()
         return
 
-    # Parse IDA RPC server argument
+    # Update ida_host and ida_port from command line arguments
+    if args.ida_host != ida_host:
+        ida_host = args.ida_host
+    if args.ida_port != ida_port:
+        ida_port = args.ida_port
+    
+    # Parse IDA RPC server argument (takes precedence over --ida-host/--ida-port)
     ida_rpc = urlparse(args.ida_rpc)
     if ida_rpc.hostname is None or ida_rpc.port is None:
         raise Exception(f"Invalid IDA RPC server: {args.ida_rpc}")
