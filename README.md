@@ -91,7 +91,7 @@ For security or isolation purposes, you can run IDA Pro in a virtual machine whi
 
 #### VM Setup (IDA Pro side)
 1. Configure VM with host-only network adapter
-2. Set environment variables in the VM:
+2. Set environment variables in the VM (optional, these are the default values as well):
    ```sh
    export MCP_PLUGIN_HOST=0.0.0.0  # Listen on all interfaces
    export MCP_PLUGIN_PORT=13337    # Default port
@@ -99,12 +99,36 @@ For security or isolation purposes, you can run IDA Pro in a virtual machine whi
 3. Start IDA Pro and load the MCP plugin
 
 #### Host Setup (MCP Client side)
-1. Configure the MCP server to connect to VM IP:
+Configure the MCP server to connect to VM IP:
+- option A: Modify Client Configuration
+The --install command creates configuration files. For Claude Desktop, edit:
+Windows: %APPDATA%\Claude\claude_desktop_config.json
+macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
+Linux: ~/.config/claude/claude_desktop_config.json
+Find the ida-pro-mcp entry and add the VM IP:
+```
+  {
+    "mcpServers": {
+      "github.com/mrexodia/ida-pro-mcp": {
+        "command": "python",
+        "args": [
+          "/path/to/server.py",
+          "--ida-host", "192.168.112.129",
+          "--ida-port", "13337"
+        ],
+        "timeout": 1800,
+        "disabled": false
+      }
+    }
+  }
+```
+
+- option B: ENV vars
    ```sh
    export IDA_HOST=192.168.112.129  # Replace with your VM IP
    export IDA_PORT=13337
    ```
-2. Or use command line arguments:
+- option C: command line arguments:
    ```sh
    ida-pro-mcp --ida-host 192.168.112.129 --ida-port 13337
    ```
